@@ -55,6 +55,7 @@ int read_int_lines_cont(int* ptr_array[], int* row_len)
 	int line = 0;
 	int len = 0;
 	char c;
+	int sign = 1;
 
 	// Prepere first line:
 	ptr_array[0] = malloc(TAB_SIZE * sizeof(int));
@@ -67,6 +68,7 @@ int read_int_lines_cont(int* ptr_array[], int* row_len)
 			ptr_array[line] = (int*)realloc(ptr_array[line], (len+1)*sizeof(int));
 			row_len[line] = len+1;
 
+			sign = 1;
 			line ++;
 			printf("Długość: %d\n", len);
 			len=0;
@@ -84,8 +86,17 @@ int read_int_lines_cont(int* ptr_array[], int* row_len)
 
 		if(c == ' ') // Go to next array space
 		{
+			ptr_array[line][len] *= sign;
+			sign = 1;
+
 			len++;
 			ptr_array[line][len] = 0;
+		}
+
+		if(c == '-')
+		{
+			sign = -1;
+			continue;
 		}
 
 		if(c != ' ') // Append number to array:
