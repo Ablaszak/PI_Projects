@@ -7,9 +7,9 @@ double sum_var (int number, ...)
 {
 	va_list args;
 	va_start(args, number);
-	int sum = 0;
+	double sum = 0;
 	for(int i=0; i<number; i++)
-		sum += va_arg(args, int);
+		sum += va_arg(args, double);
 	va_end(args);
 	return sum;
 }
@@ -18,24 +18,24 @@ double average_var (int number, ...)
 {
 	va_list args;
 	va_start(args, number);
-	int sum = 0;
+	double sum = 0;
 	for(int i=0; i<number; i++)
-		sum += va_arg(args, int);
+		sum += va_arg(args, double);
 	va_end(args);
     sum /= number;
 	return sum;
 }
-void swap(int* i, int* j)
+void swap(double* i, double* j)
 {
-    int temp = * j;
+    double temp = * j;
     *j = *i;
     *i = temp;
 }
 
 // Quick select block:
-int partition(int arr[], int start, int end)
+int partition(double arr[], int start, int end)
 {
-    int pivot = arr[end];
+    double pivot = arr[end];
     int i = start-1;
     int j = start;
     while(j <= end)
@@ -51,7 +51,7 @@ int partition(int arr[], int start, int end)
     return i+1; // New pivot index
 }
 
-int qselect(int arr[], int start, int end, int k)
+double qselect(double arr[], int start, int end, int k)
 {
     int pid = partition(arr, start, end);
 
@@ -64,21 +64,54 @@ int qselect(int arr[], int start, int end, int k)
 }
 double median_var (int number, ...) 
 {
-	int med;
-	float* t = malloc(sizeof(float) * number);
+	double med;
+	double* t = malloc(sizeof(double) * number);
 	va_list args;
 	va_start(args, number);
 	for(int i=0; i<number; i++)
-		t[i] = va_arg(args); // Create a seperate array to use in quick select
+		t[i] = va_arg(args, double); // Create a seperate array to use in quick select
 	if(number % 2 == 1) // Simpler case
-		med = qselect(t, 0, number-1, int(number/2))
-	
+		med = qselect(t, 0, number-1, number/2);
+	else // Gotta take the avarage num (will use function hehe)
+	{
+		med = average_var(2,
+			qselect(t, 0, number-1, number/2),
+			qselect(t, 0, number-1, (number/2) + 1 ));
+	}
+	free(t);
+	return med;
 }
 
-double min_var (int number, ...) {
+double min_var (int number, ...) 
+{
+	va_list args;
+	va_start(args, number);
+	double min = va_arg(args, double);
+	double temp;
+	for(int i=0; i<number-1; i++)
+	{
+		temp = va_arg(args, double);
+		if(temp < min)
+			min = temp;
+	}
+	va_end(args);
+	return min;
 }
 
-double max_var (int number, ...) {
+double max_var (int number, ...) 
+{
+	va_list args;
+	va_start(args, number);
+	double max = va_arg(args, double);
+	double temp;
+	for(int i=0; i<number-1; i++)
+	{
+		temp = va_arg(args, double);
+		if(temp > max)
+			max = temp;
+	}
+	va_end(args);
+	return max;
 }
 
 #define MAX_LINE 256
@@ -100,7 +133,9 @@ double min (const int number, const double* values) {
 double max (const int number, const double* values) {
 }
 
-int read_from_line(char* c_buf, double *values, char** texts, int* text_counter) {
+int read_from_line(char* c_buf, double *values, char** texts, int* text_counter) 
+{
+	
 }
 
 int read_int(void) {
