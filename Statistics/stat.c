@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <ctype.h>
 
 double sum_var (int number, ...) 
 {
@@ -38,7 +39,7 @@ int partition(double arr[], int start, int end)
     double pivot = arr[end];
     int i = start-1;
     int j = start;
-    while(j <= end)
+    while(j < end)
     {
         if(arr[j] > pivot)
         {
@@ -75,8 +76,8 @@ double median_var (int number, ...)
 	else // Gotta take the avarage num (will use function hehe)
 	{
 		med = average_var(2,
-			qselect(t, 0, number-1, number/2),
-			qselect(t, 0, number-1, (number/2) + 1 ));
+			qselect(t, 0, number-1, (number/2)-1),
+			qselect(t, 0, number-1, (number/2)));
 	}
 	free(t);
 	return med;
@@ -118,58 +119,113 @@ double max_var (int number, ...)
 #define MAX_NUMBER 64
 #define MAX_TEXTS 64
 
-double sum (const int number, const double* values) {
+double sum (const int number, const double* values) 
+{
+	if(number == 0)
+		return 0;
+	
+	double summ=0;
+	for(int i=0; i<number; i++)
+		summ += values[i];
+	return summ;
 }
 
-double average (const int number, const double* values) {
+double average (const int number, const double* values) 
+{
+	if(number == 0)
+		return 0;
+	
+	double summ = sum(number, values);
+	return (summ/number);
 }
 
-double median (const int number, double* values) {
+double median (const int number, double* values) 
+{
+	if(number == 0)
+		return 0;
+	
+	// Same as median_var():
+	if(number % 2 == 1) // Simpler case
+		return(qselect(values, 0, number-1, number/2));
+
+	else // Gotta take the avarage num (will use function hehe)
+	{
+		double med[2] = {
+			qselect(values, 0, number-1, (number/2)-1),
+			qselect(values, 0, number-1, (number/2)),
+			};
+		return (sum(2, med)/2);
+	}
 }
 
-double min (const int number, const double* values) {
+double min (const int number, const double* values) 
+{
+	if(number == 0)
+		return 0;
+	
+	double min = values[0];
+	for(int i=1; i<number; i++)
+		if(values[i] < min)
+			min = values[i];
+	return min;
 }
 
-double max (const int number, const double* values) {
+double max (const int number, const double* values) 
+{
+	if(number == 0)
+		return 0;
+
+	double max = values[0];
+	for(int i=1; i<number; i++)
+		if(values[i] > max)
+			max = values[i];
+	return max;
 }
 
 int read_from_line(char* c_buf, double *values, char** texts, int* text_counter) 
 {
 	// Init:
 	*text_counter = 0;
-	int devider = 1;
+	double devider = 1;
 	char c;
 	int instring = 0, got_int = 0, past_coma = 0; // bool
 	int val_it = 0; // iterator
+	size_t n = strlen(c_buf);
 	
 	for(int i=0; i<MAX_NUMBER; i++)
 		values[i] = 0;
 	for(int i=0; i<MAX_TEXTS; i++)
-		texts[i] = "";
+	{
+		texts[i] = malloc(MAX_LINE);
+		texts[i][0] = '\0';
+	}
 
 	// Main loop:
-	while((c = getchar()) != EOF)
+	for(size_t j=0; j<n; j++)
 	{
+        c = c_buf[j];
+
 		if(c == ' ')
 		{
-			if(instring == 0) // edited just int, not a string
+			if(instring == 0 && got_int == 1) // edited just int, not a string
 			{
 				values[val_it] *= devider;
 				devider = 1;
+				past_coma = 0;
 				val_it ++;
 			}
 			else 			  // edited string (int edition was ended elsewhere)
-				*text_counter ++;
+				(*text_counter) ++;
 
 			instring = 0;
 			got_int = 0;
 			continue;
 		}
 
-		if(isalnum(c) && instring == 0)
+		if(isdigit(c) && instring == 0)
 		{
 			values[val_it] *= 10;
-			valuse[val_it] += int(c - '0');
+			values[val_it] += (c - '0');
 			
 			if(past_coma == 1)
 				devider /= 10;
@@ -180,22 +236,52 @@ int read_from_line(char* c_buf, double *values, char** texts, int* text_counter)
 
 		if(c == '.' && instring == 0) // going past coma in a number
 		{
-			devider = 1;
+			// afaik devider should be = 1 or -1 at this point
+			past_coma = 1;
+			continue;
+		}
+		
+		if(c == '-' && instring == 0 && got_int == 0) // got a '-' as firts char
+		{
+			devider = -1;
 			continue;
 		}
 
 		// Now we enter the string teritory
-		isntring = 1;
+		instring = 1;
 
 		if(got_int == 1) // We've just ended an int
 		{
 			values[val_it] *= devider;
 			devider = 1;
 			val_it ++;
+			past_coma = 0;
+			got_int = 0;
 		}
 
 		strncat(texts[*text_counter], &c, 1);
 	}
+	// In case we ended on an int:
+	if(instring == 0 && got_int == 1) // edited just int, not a string
+	{
+		values[val_it] *= devider;
+		val_it ++;
+	}
+
+	// Or if we ended with string:
+	else if(instring == 1)
+		(*text_counter) ++ ;
+
+	// Debug:
+	/*
+	for(int i=0; i<4; i++)
+		printf("%.2f ", values[i]);
+	printf("\n");
+
+	printf("val_it = %d\n", val_it);
+	*/
+    return val_it;
+
 }
 
 int read_int(void) {
@@ -248,6 +334,8 @@ int main(void) {
 			for (int k = 0; k < text_counter; k++) {
 				printf("%s\n", texts[k]);
 			}
+			for(int i=0; i<MAX_TEXTS; i++)
+				free(texts[i]);
 			break;
 		default:
 			printf("Nothing to do for n = %d\n", to_do);
