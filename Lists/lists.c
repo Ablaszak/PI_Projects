@@ -10,7 +10,8 @@ typedef void (*DataFp)(void*);
 typedef void (*ConstDataFp)(const void*);
 typedef int  (*CompareDataFp)(const void*, const void*);
 
-typedef struct ListElement {
+typedef struct ListElement 
+{
 	struct ListElement *next;
 	void *data;
 } ListElement;
@@ -56,11 +57,22 @@ void free_list(List* p_list) {
 }
 
 // Push element at the beginning of the list
-void push_front(List* p_list, void *data) {
+void push_front(List* p_list, void *data) 
+{
+	// Element creation:
+	ListElement* new_head = safe_malloc(sizeof(ListElement));
+	new_head->data = data;
+	// List update:
+	new_head->next = p_list->head;
+	p_list->head = new_head;
+	if(p_list->tail == NULL) // Empty list
+		p_list->tail = new_head;
 }
 
 // Push element at the end of the list
-void push_back(List* p_list, void *data) {
+void push_back(List* p_list, void *data) 
+{
+	
 }
 
 // Remove the first element
