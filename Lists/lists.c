@@ -102,15 +102,51 @@ void pop_front(List* p_list)
 }
 
 // Reverse the list
-void reverse(List* p_list) {
+void reverse(List* p_list) 
+{
+	// Edge cases:
+	if(p_list->head == NULL) // Empty list
+		return;
+	if(p_list->head->next == NULL) // Single element list
+		return;
+	
+	// Actual reversal:
+	ListElement* left = p_list->head;
+	ListElement* mid = p_list->head->next;
+	ListElement* right = p_list->head->next->next;
+	
+	while(mid != NULL)
+	{
+		// Reverse pointers:
+		mid->next = left;
+		left = mid;
+		mid = right;
+		if(right != NULL)
+			right = right->next;
+	}
+	
+	// Final touch:
+	p_list->head->next = NULL;
+	p_list->tail = p_list->head;
+	p_list->head = p_list->tail;
 }
 
 // find an element in a sorted list after which to insert a given element
-ListElement* find_insertion_point(const List* p_list, const ListElement* p_element) {
+ListElement* find_insertion_point(const List* p_list, const ListElement* p_element) 
+{
+	// We assume list is not empty
+	ListElement* front = p_list->head;
+	ListElement* node
+	while(node!=NULL && (front->data)<=p_element->data)
+	{
+		node = front;
+		front = gront->next
+	}
 }
 
 // Insert element after 'previous'
-void push_after(List* p_list, void* data, ListElement* previous) {
+void push_after(List* p_list, void* data, ListElement* previous) 
+{
 }
 
 // Insert element preserving order
