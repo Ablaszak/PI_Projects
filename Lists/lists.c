@@ -72,7 +72,19 @@ void push_front(List* p_list, void *data)
 // Push element at the end of the list
 void push_back(List* p_list, void *data) 
 {
-	
+	// Element creation:
+	ListElement* new_tail = safe_malloc(sizeof(ListElement));
+	new_tail->data = data;
+	new_tail->next = NULL;
+	// List update:
+	if(p_list->head == NULL) // Empty list
+	{
+		p_list->tail = new_tail;
+		p_list->head = new_tail;
+		return;
+	}
+	p_list->tail->next = new_tail;
+	p_list->tail = new_tail;
 }
 
 // Remove the first element
