@@ -28,10 +28,9 @@ int place_queens(int* queens, const int n, int k, const int ndx)
     // because we care only about what is above ndx (lower indexes)
     // And they are always up to date
 
-    print_board(queens, n);
-    printf("\n^%d",);
+    //print_board(queens, n);
 
-    if(ndx == n-1) // Max recursion depth
+    if(ndx == n) // Max recursion depth
         return k-1;
     
     for(int i=0; i<n; i++)
