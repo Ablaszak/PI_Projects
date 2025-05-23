@@ -88,7 +88,17 @@ void push_back(List* p_list, void *data)
 }
 
 // Remove the first element
-void pop_front(List* p_list) {
+void pop_front(List* p_list) 
+{
+	if(p_list->head == NULL) // Empty list
+		return;
+	
+	ListElement* convict = p_list->head;
+	// Update list:
+	p_list->head = p_list->head->next;
+	// Del first element from memory:
+	p_list->free_data(convict->data);
+	free(convict);
 }
 
 // Reverse the list
