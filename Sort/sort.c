@@ -24,10 +24,52 @@ typedef struct {
 
 typedef int (*CompareFp)(const void *, const void *);
 
-int cmp_date(const void *d1, const void *d2) {
+int cmp_date(const Date *d1, const Date *d2) 
+{
+	// Note:
+	// Since I'll never use cmp_date() anywhere else but in cmp() function,
+	// I am sure i can feed it with Date* variables and don't have to use void*
+
+	if(d1->year < d2->year)
+		return -1;
+
+	if(d1->year > d2->year)
+		return 1;
+
+	if(d1->month < d2->month)
+		return -1;
+
+	if(d1->month > d2->month)
+		return 1;
+
+	if(d1->day < d2->day)
+		return -1;
+
+	if(d1->day > d2->day)
+		return 1;
+
+	return 0;
 }
 
-int cmp(const void *a, const void *b) {
+
+int cmp(const void *a, const void *b) 
+{
+	Food* af = (Food*)a;
+	Food* bf = (Food*)b;
+
+	// 1. Compare names:
+	if(strcmp(af->name, bf->name) != 0)
+		return strcmp(af->name, bf->name);
+
+	// 2. Compare price:
+	if(af->price < bf->price)
+		return -1;
+
+	if(af->price > bf->price)
+		return 1;
+
+	// 3.Compare dates:
+	return cmp_date(af->exp_date, bf->exp_date);
 }
 
 void* bsearch2 (const void *key, const void *base, const size_t n_items,
@@ -66,7 +108,7 @@ void* bsearch2 (const void *key, const void *base, const size_t n_items,
 	*result = 0;
 
 	mid_elem = (Food*)(base_elem + low);
-	return mid_elem; // mid_elem should
+	return mid_elem; 
 }
 
 Food* add_record(const Food *tab, int *np, const CompareFp compare, const Food *new) 
@@ -88,12 +130,34 @@ Food* add_record(const Food *tab, int *np, const CompareFp compare, const Food *
 		for(int i=*np; i>id; i--) // We assume we can fit in tab
 			tab[i] = tab[i-1]
 		
-		// At last, insert new element
+		// At last, insert the new element
 		tab[id] = place;
 	}
+	return place;
 }
 
-int read_goods(Food *tab, FILE *stream, const int sorted) {
+Date compute_date(string row)
+{
+	Date out;
+	int temp;
+
+	// Extract 
+}
+
+int read_goods(Food *tab, FILE *stream, const int sorted) 
+{
+	int no;
+	scanf("%d", no);
+
+	Food new;
+	char* row_date;
+
+	for(int i=0; i<no; i++)
+	{
+		fscanf(stream, "%s %d %d %s", new.name, new.price, new.amount, row_date);
+		
+		new.date = compute_date(row_date);
+	}
 }
 
 float value(Food *food_tab, const size_t n, const Date curr_date, const int days) {
