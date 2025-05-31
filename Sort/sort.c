@@ -69,11 +69,11 @@ int cmp(const void *a, const void *b)
 		return 1;
 
 	// 3.Compare dates:
-	return cmp_date(af->exp_date, bf->exp_date);
+	return cmp_date(&af->exp_date, &bf->exp_date);
 }
 
 void* bsearch2 (const void *key, const void *base, const size_t n_items,
-		const size_t size, const CompareFp compare, char *result) 
+		const size_t size, const CompareFp compare, int* result) 
 {
 	// Init:
 	size_t low = 0;
@@ -111,59 +111,66 @@ void* bsearch2 (const void *key, const void *base, const size_t n_items,
 	return mid_elem; 
 }
 
-Food* add_record(const Food *tab, int *np, const CompareFp compare, const Food *new) 
+Food* add_record(Food *tab, int *np, const CompareFp compare, const Food *product) 
 {
 	int result;
-	Food* place = bsearch2(new, tab, *np, sizeof(Food), compare, &result);
+	Food* place = bsearch2(product, tab, *np, sizeof(Food), compare, &result);
 
 	if(result == 1) // Product exists
-		place->amount += new->amount;
-	else // Otherwise, we have to insert the new product
+		place->amount += product->amount;
+	else // Otherwise, we have to insert the product product
 	{
 		// Firstly, find id of place
 		int id = 0;
-		whlie(tab[id] != place)
+		while(cmp(&tab[id], place) != 0)
 			id++;
 
 		// Second, move other elements
-		Food temp = tab[id];
 		for(int i=*np; i>id; i--) // We assume we can fit in tab
-			tab[i] = tab[i-1]
+			tab[i] = tab[i-1];
 		
-		// At last, insert the new element
-		tab[id] = place;
+		// At last, insert the product
+		tab[id] = *product;
+		
+		(*np)++;
 	}
 	return place;
-}
-
-Date compute_date(char* row)
-{
-	Date out;
-	int temp;
-
-	// Extract days:
-	out.day = 10*(row[0] - '0') + (row[1] - '0');
-	
-	// Extract month:
-	out.month = 10*(row[3] - '0') + (row[4] - '0');
-	
-	// Extract year:
-	out.year = 1000*(row[6] - '0') + 100*(row[7] - '0') + 10*(row[8] - '0') + (row[9] - '0');
 }
 
 int read_goods(Food *tab, FILE *stream, const int sorted)
 {
 	int no;
-	scanf("%d", no);
+	int np = 0;
+	scanf("%d", &no);
 
-	Food new;
+	Food product;
 	char* row_date;
 
 	for(int i=0; i<no; i++)
 	{
-		fscanf(stream, "%s %d %d %s", new.name, new.price, new.amount, row_date);
+		fscanf(stream, "%s %e %d ", product.name, &product.price, &product.amount);
+		fscanf(stream, "%d.%d.%d\n", &product.exp_date.day, &product.exp_date.month, &product.exp_date.year); // Same input, seperated for visibility
 		
-		new.date = compute_date(row_date);
+		add_record(tab, &np, cmp, &product);
+	}
+	return np;
+}
+
+// Separete function for visibility:
+void print_date(Date* date)
+{
+	printf("%d.%d.%d\n", date->day, date->month, date->year);
+}
+
+void print_art(Food* tab, int n, char buff[])
+{
+	for(int i=0; i<n; i++)
+	{
+		if(strcmp(tab[i].name, buff) == 0)
+		{
+			printf("%.2f %d ", tab[i].price, tab[i].amount);
+			print_date(&tab[i].exp_date);
+		}
 	}
 }
 
