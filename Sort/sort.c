@@ -24,33 +24,32 @@ typedef struct {
 
 typedef int (*CompareFp)(const void *, const void *);
 
-int cmp_date(const Date *d1, const Date *d2) 
+int cmp_date(Food* f1, Food* f2) 
 {
-	// Note:
-	// Since I'll never use cmp_date() anywhere else but in cmp() function,
-	// I am sure i can feed it with Date* variables and don't have to use void*
 
-	if(d1->year < d2->year)
+	Date d1 = f1->exp_date;
+	Date d2 = f2->exp_date;
+
+	if(d1.year < d2.year)
 		return -1;
 
-	if(d1->year > d2->year)
+	if(d1.year > d2.year)
 		return 1;
 
-	if(d1->month < d2->month)
+	if(d1.month < d2.month)
 		return -1;
 
-	if(d1->month > d2->month)
+	if(d1.month > d2.month)
 		return 1;
 
-	if(d1->day < d2->day)
+	if(d1.day < d2.day)
 		return -1;
 
-	if(d1->day > d2->day)
+	if(d1.day > d2.day)
 		return 1;
 
 	return 0;
 }
-
 
 int cmp(const void *a, const void *b) 
 {
@@ -69,7 +68,7 @@ int cmp(const void *a, const void *b)
 		return 1;
 
 	// 3.Compare dates:
-	return cmp_date(&af->exp_date, &bf->exp_date);
+	return cmp_date(af, bf);
 }
 
 void* bsearch2 (const void *key, const void *base, const size_t n_items,
@@ -139,6 +138,12 @@ Food* add_record(Food *tab, int *np, const CompareFp compare, const Food *produc
 
 int read_goods(Food *tab, FILE *stream, const int sorted)
 {
+	CompareFp comparison;
+	if(sorted == 1)
+		comparison = (CompareFp)cmp;
+	else
+		comparison = (CompareFp)cmp_date;
+
 	int no;
 	int np = 0;
 	scanf("%d", &no);
@@ -151,7 +156,7 @@ int read_goods(Food *tab, FILE *stream, const int sorted)
 		fscanf(stream, "%s %e %d ", product.name, &product.price, &product.amount);
 		fscanf(stream, "%d.%d.%d\n", &product.exp_date.day, &product.exp_date.month, &product.exp_date.year); // Same input, seperated for visibility
 		
-		add_record(tab, &np, cmp, &product);
+		add_record(tab, &np, comparison, &product);
 	}
 	return np;
 }
@@ -174,7 +179,45 @@ void print_art(Food* tab, int n, char buff[])
 	}
 }
 
-float value(Food *food_tab, const size_t n, const Date curr_date, const int days) {
+Date add_days(Date date, int days) {
+	// Fill in the tm structure with the given date
+	struct tm tm_date = {
+		.tm_mday = date.day,
+		.tm_mon = date.month - 1,     // tm_mon is 0-based (0 = January)
+		.tm_year = date.year - 1900,  // tm_year is years since 1900
+		.tm_hour = 0,
+		.tm_min = 0,
+		.tm_sec = 1                   // use non-zero second to avoid DST issues
+	};
+
+	// Convert struct tm to time_t (seconds since epoch)
+	time_t time_val = mktime(&tm_date);
+	if (time_val == -1) {
+		// mktime failed — return the original date as fallback
+		return date;
+	}
+
+	// Add the number of days in seconds
+	time_val += days * 24 * 60 * 60;
+
+	// Convert back from time_t to struct tm
+	struct tm *new_tm = localtime(&time_val);
+
+	// Create the new Date struct from updated tm
+	Date new_date = {
+		.day = new_tm->tm_mday,
+		.month = new_tm->tm_mon + 1,
+		.year = new_tm->tm_year + 1900
+	};
+
+	return new_date;
+}
+
+float value(Food *food_tab, const size_t n, const Date curr_date, const int days) 
+{
+	Date deadline = add_days(curr_date, days);
+
+	read_goods(food_tab, )
 }
 
 int read_int() {
