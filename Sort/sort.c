@@ -86,7 +86,7 @@ void* bsearch2 (const void *key, const void *base, const size_t n_items,
 	// Main loop:
 	while(low < high)
 	{
-		size_t mid = (high + low) / 2;
+		mid = (high + low) / 2;
 		mid_elem = (Food*)(base_elem + mid);
 		relation = compare(key, mid_elem);
 
@@ -149,11 +149,10 @@ int read_goods(Food *tab, FILE *stream, const int sorted)
 	scanf("%d", &no);
 
 	Food product;
-	char* row_date;
 
 	for(int i=0; i<no; i++)
 	{
-		fscanf(stream, "%s %e %d ", product.name, &product.price, &product.amount);
+		fscanf(stream, "%s %f %d ", product.name, &product.price, &product.amount);
 		fscanf(stream, "%d.%d.%d\n", &product.exp_date.day, &product.exp_date.month, &product.exp_date.year); // Same input, seperated for visibility
 		
 		add_record(tab, &np, comparison, &product);
@@ -213,11 +212,25 @@ Date add_days(Date date, int days) {
 	return new_date;
 }
 
-float value(Food *food_tab, const size_t n, const Date curr_date, const int days) 
+float value(const size_t n, const Date curr_date, const int days) 
 {
-	Date deadline = add_days(curr_date, days);
+	Food dummy;
+	dummy.exp_date = add_days(curr_date, days);
 
-	read_goods(food_tab, )
+	float val = 0;
+
+	Food product;
+
+	for(size_t i=0; i<n; i++)
+	{
+		scanf("%s %f %d ", product.name, &product.price, &product.amount);
+		scanf("%d.%d.%d\n", &product.exp_date.day, &product.exp_date.month, &product.exp_date.year); // Same input, seperated for visibility
+		
+		if(cmp_date(&dummy, &product) == 0)
+			val += (product.price * product.amount);
+	}
+	printf("\n\n");
+	return val;
 }
 
 int read_int() {
@@ -241,13 +254,13 @@ int main(void) {
 			scanf("%s", buff);
 			print_art(food_tab, n, buff);
 			break;
-		case 2: // qsort
-			n = read_goods(food_tab, stdin, 0);
+		case 2: // qsort (not realy but ok)
+			scanf("%d", &n);
 			Date curr_date;
 			int days;
 			scanf("%d %d %d", &curr_date.day, &curr_date.month, &curr_date.year);
 			scanf("%d", &days);
-			printf("%.2f\n", value(food_tab, (size_t)n, curr_date, days));
+			printf("%.2f\n", value((size_t)n, curr_date, days));
 			break;
 		default:
 			printf("NOTHING TO DO FOR %d\n", to_do);
