@@ -136,15 +136,22 @@ Food* add_record(const Food *tab, int *np, const CompareFp compare, const Food *
 	return place;
 }
 
-Date compute_date(string row)
+Date compute_date(char* row)
 {
 	Date out;
 	int temp;
 
-	// Extract 
+	// Extract days:
+	out.day = 10*(row[0] - '0') + (row[1] - '0');
+	
+	// Extract month:
+	out.month = 10*(row[3] - '0') + (row[4] - '0');
+	
+	// Extract year:
+	out.year = 1000*(row[6] - '0') + 100*(row[7] - '0') + 10*(row[8] - '0') + (row[9] - '0');
 }
 
-int read_goods(Food *tab, FILE *stream, const int sorted) 
+int read_goods(Food *tab, FILE *stream, const int sorted)
 {
 	int no;
 	scanf("%d", no);
