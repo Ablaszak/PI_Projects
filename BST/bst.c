@@ -34,22 +34,23 @@ void delete_tree(node* root)
 	free(root);
 }
 
-node* insert(node* root, node* to_insert) 
+node* insert(node* root, node* to_insert, node* parent) 
 {
-	if(root == NULL) // we gotta create the root
+	if(root == NULL) // we gotta create the root, also recursion end
 	{
 		root = to_insert;
+		root->parent = parent;
 		return root;
 	}
 
-	if(root->number == to_insert->number)
+	if(root->number == to_insert->number, root)
 		return root;
 
 	else if(root->number < to_insert->number)
-		root->right = insert(root->right, to_insert);
+		root->right = insert(root->right, to_insert, root);
 
 	else if(root->number > to_insert->number)
-		root->left = insert(root->left, to_insert);
+		root->left = insert(root->left, to_insert, root);
 
 	return root;
 } 
@@ -70,7 +71,41 @@ node* find (node* root, const int number)
 
 node* delete(node* root, const int number) 
 {
-	if
+	del = find(root, number);
+
+	if(del == NULL)
+		return NULL;
+
+	// case 1 - leaf:
+	if(del->left == NULL && del->right == NULL)
+	{
+		// make parent forget the child:
+		if(del->parent->left->number == del->number)
+			del->parent->left = NULL;
+		else
+			del->parent->right = NULL;
+		
+		free(del);
+		return root;
+	}
+	// case 2 - one child
+	if(del->right == NULL || del->left == NULL)
+	{
+		node* child = del->right;
+		if(del->left != NULL)
+			child = del->left;
+
+		// give parent new child:
+		if(del->parent->right->number == del->number)
+			del->parent->right = child;
+		else
+			del->parent->left = child;
+
+		// delete node:
+		free(del);
+		return root;
+	}
+	// case 3 - both children
 }
 
 int main() {
@@ -84,7 +119,7 @@ int main() {
 	while (a-- > 0) {
 		scanf("%d", &number);
 		scanf("%s", name);
-		root = insert(root, create_node(number, name));
+		root = insert(root, create_node(number, name), NULL);
 	}
 
 	while (r-- > 0) {

@@ -112,6 +112,12 @@ void* bsearch2 (const void *key, const void *base, const size_t n_items,
 
 Food* add_record(Food *tab, int *np, const CompareFp compare, const Food *product) 
 {
+	if(*np == 0)
+	{
+		tab[0] = *product;
+		(*np) ++ ;
+		return &tab[0];
+	}
 	int result;
 	Food* place = bsearch2(product, tab, *np, sizeof(Food), compare, &result);
 
@@ -150,12 +156,25 @@ int read_goods(Food *tab, FILE *stream, const int sorted)
 
 	Food product;
 
-	for(int i=0; i<no; i++)
+	if(sorted == 1)
+		for(int i=0; i<no; i++)
+		{
+			fscanf(stream, "%s %f %d ", product.name, &product.price, &product.amount);
+			fscanf(stream, "%d.%d.%d\n", &product.exp_date.day, &product.exp_date.month, &product.exp_date.year); // Same input, seperated for visibility
+			
+			add_record(tab, &np, cmp, &product);
+		}
+	else
 	{
-		fscanf(stream, "%s %f %d ", product.name, &product.price, &product.amount);
-		fscanf(stream, "%d.%d.%d\n", &product.exp_date.day, &product.exp_date.month, &product.exp_date.year); // Same input, seperated for visibility
-		
-		add_record(tab, &np, comparison, &product);
+		for(int i=0; i<no; i++)
+		{
+			fscanf(stream, "%s %f %d ", product.name, &product.price, &product.amount);
+			fscanf(stream, "%d.%d.%d\n", &product.exp_date.day, &product.exp_date.month, &product.exp_date.year); // Same input, seperated for visibility
+					
+			tab[np] = product;
+			np++;
+		}
+
 	}
 	return np;
 }
@@ -163,7 +182,7 @@ int read_goods(Food *tab, FILE *stream, const int sorted)
 // Separete function for visibility:
 void print_date(Date* date)
 {
-	printf("%d.%d.%d\n", date->day, date->month, date->year);
+	printf("%02d.%02d.%d\n", date->day, date->month, date->year);
 }
 
 void print_art(Food* tab, int n, char buff[])
@@ -212,26 +231,46 @@ Date add_days(Date date, int days) {
 	return new_date;
 }
 
-float value(const size_t n, const Date curr_date, const int days) 
+float value(Food *food_tab, const size_t n, const Date curr_date, const int days) 
 {
-	Food dummy;
-	dummy.exp_date = add_days(curr_date, days);
+	Date deadline = add_days(curr_date, days);
 
-	float val = 0;
+	float sum = 0;
 
-	Food product;
+	int result;
 
-	for(size_t i=0; i<n; i++)
+	qsort(food_tab, n, sizeof(Food), (CompareFp)cmp_date);
+
+	Food dummy_date;
+	dummy_date.exp_date = deadline;
+	Food* product = bsearch2(&dummy_date, food_tab, n, sizeof(Food), (CompareFp)cmp_date, &result);
+
+	if(result == 0)
+		return sum;
+
+	// Now *product points at random element with deadline date,
+	// we have to check forward and backword
+
+	Food* holder = product;
+	// forward:
+	while(product < (food_tab + n) && cmp_date(product, &dummy_date) == 0)
 	{
-		scanf("%s %f %d ", product.name, &product.price, &product.amount);
-		scanf("%d.%d.%d\n", &product.exp_date.day, &product.exp_date.month, &product.exp_date.year); // Same input, seperated for visibility
-		
-		if(cmp_date(&dummy, &product) == 0)
-			val += (product.price * product.amount);
+		sum += (product->price)*(product->amount);
+		product ++;
 	}
-	printf("\n\n");
-	return val;
+
+	// backword:
+	product = holder;
+	product --;
+	while(product >= food_tab && cmp_date(product, &dummy_date) == 0)
+	{
+		sum += (product->price)*(product->amount);
+		product --;
+	}
+		
+	return sum;
 }
+
 
 int read_int() {
 	char buff[RECORD_MAX];
@@ -254,14 +293,15 @@ int main(void) {
 			scanf("%s", buff);
 			print_art(food_tab, n, buff);
 			break;
-		case 2: // qsort (not realy but ok)
-			scanf("%d", &n);
-			Date curr_date;
-			int days;
-			scanf("%d %d %d", &curr_date.day, &curr_date.month, &curr_date.year);
-			scanf("%d", &days);
-			printf("%.2f\n", value((size_t)n, curr_date, days));
-			break;
+		case 2: // qsort 
+            n = read_goods(food_tab, stdin, 0);
+            Date curr_date;
+            int days;
+            scanf("%d %d %d", &curr_date.day, &curr_date.month, &curr_date.year);
+            scanf("%d", &days);
+            printf("%.2f\n", value(food_tab, (size_t)n, curr_date, days));
+            break;
+
 		default:
 			printf("NOTHING TO DO FOR %d\n", to_do);
 	}
